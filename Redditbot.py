@@ -38,13 +38,13 @@ def main():
             if str(subreddits[0]) != 'all':
                     subs = r.get_subreddit(combined_subs)
                     comments = subs.get_comments(limit=None)
-                    for comment in comments:
-                        cachelist.append(comment.id)
-                        if check_if_all(comment,cachelist):
-                                print 'Found a comment!'
-                                print comment.body
+            for comment in comments:
+                cachelist.append(comment.id)
+                if check_if_all(comment,cachelist):
+                        print 'Found a comment!'
+                        print comment.body
                                     
-                                queue.append(comment.permalink)
+                        queue.append(comment.permalink)
     
         except Exception as e:
                 print 'ERROR:', e
