@@ -25,7 +25,7 @@ def main():
     checkmail()
 
     cachelist = cachefile.read().splitlines()
-    if str(subreddits[0]) != 'all':
+    if str(subreddits[0]) != 'all': 
         combined_subs = ('%s') % '+'.join(subreddits)
         print('Looking at the following subreddits: "' + combined_subs + '".')
     else:
@@ -100,18 +100,13 @@ def extract_link(body):
     return ''
 
 def exists(path):
-    if not 'www.' in path[:12]:
-        if urlparse.urlparse(path).scheme == 'https':
-            path = path[:8] + 'www.' + path[8:]
-        else:
-            path = path[:7] + 'www.' + path[7:]
     try:
         z = requests.head(path)
     except Exception as e:
         print str(e)
         return False
     else:
-        return z.status_code == 200
+        return z.status_code < 400
 
 def check_if_all(comment,cachinglist):
     comment_body = comment.body.encode('utf-8')
@@ -127,7 +122,7 @@ def check_if_all(comment,cachinglist):
     return v and j and l and not t
 
 def checkmail():
-    mail = False
+    mail = False  
     for msg in r.get_unread(limit=None):
         mail = True
     if mail:
