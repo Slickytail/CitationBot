@@ -51,7 +51,7 @@ def main():
                 print 'ERROR:', e
                 print 'Stopping Gracefully.'
                 running = False
-        print len(queue)
+        print 'Found ', len(queue), ' comments.'
 
         if not cachelist == []:
             write_to_cachefile(cachelist)
@@ -76,7 +76,7 @@ def reply_to_queue():
         comment = r.get_submission(url=queue[0]).comments[0]
         comment.reply(str_suffix)
         print 'Successfully replied to a comment!'
-        print comment.body.encode('utf-8')
+        print comment.body.encode('utf-8')[:30] + '...'
     except praw.errors.RateLimitExceeded as e:
         print 'Error: Rate limit exceeded.'
         print e
@@ -112,10 +112,9 @@ def exists(path):
     else:
         return z.status_code < 400
 
-def check_if_all(comment_body,):
+def check_if_all(comment_body):
     v = check_if_valid(comment_body)
     if not v: return False
-    else: print comment_body
     l = check_if_link(comment_body)
     t = False
     if l: t = exists(extract_link(comment_body))
