@@ -39,11 +39,12 @@ def main():
                     comments = subs.get_comments(limit=None)
             for comment in comments:
                 comment_body = comment.body.encode('utf-8')
-                if check_if_all(comment_body,comment.id,cachelist):
+                if not comment.id in cachelist:
+                    if check_if_all(comment_body):
                         print 'Found a comment!'
-                                print comment_body
-                                print '-' * 25
-                                print '\n'
+                        print comment_body
+                        print '-' * 25
+                        print '\n'
                         queue.append(comment.permalink)
                 cachelist.append(comment.id)
         except Exception as e:
@@ -75,6 +76,7 @@ def reply_to_queue():
         comment = r.get_submission(url=queue[0]).comments[0]
         comment.reply(str_suffix)
         print 'Successfully replied to a comment!'
+        print comment.body.encode('utf-8')
     except praw.errors.RateLimitExceeded as e:
         print 'Error: Rate limit exceeded.'
         print e
@@ -110,15 +112,15 @@ def exists(path):
     else:
         return z.status_code < 400
 
-def check_if_all(comment_body,commentid, cachinglist):
+def check_if_all(comment_body,):
     v = check_if_valid(comment_body)
     if not v: return False
+    else: print comment_body
     l = check_if_link(comment_body)
-    j = not commentid in cachinglist
     t = False
     if l: t = exists(extract_link(comment_body))
-    if (v and not l and j): return True
-    return v and j and l and not t
+    if (v and not l): return True
+    return v and l and not t
 
 def checkmail():
     mail = False
