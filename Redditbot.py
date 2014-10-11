@@ -4,16 +4,15 @@ str_suffix    = '''**[Citation Needed]**
 
 *I am a bot. For questions, please contact /u/slickytail*'''
 max_comments  = 250
-sleeptime     = 500
-subreddits    = ['all']
-terms         = ['studies show', 'study shows', 'research shows','data shows']
+sleeptime     = 50
+subreddits    = ['askreddit','dataisbeautiful','gaming','news','pics','science','technology']
+terms         = ['studies show', 'study shows', 'research shows', 'data shows']
 username      = 'citation-is-needed'
 password      = raw_input('Enter the password for account ' + username + ' : ')
 agent         = 'Silly Citing Bot - Maintained by /u/slickytail'
 cachefile     = open('cachedposts.txt','a+')
 queue         = []
 r             = praw.Reddit(agent)
-debugmode     = False
 
 def main():
     print 'Cite your posts! by /u/slickytail'
@@ -25,7 +24,7 @@ def main():
     checkmail()
 
     cachelist = cachefile.read().splitlines()
-    if str(subreddits[0]) != 'all': 
+    if str(subreddits[0]) != 'all':
         combined_subs = ('%s') % '+'.join(subreddits)
         print('Looking at the following subreddits: "' + combined_subs + '".')
     else:
@@ -33,22 +32,25 @@ def main():
         print('Looking at r/all.')
 
     running = True
-    while running:    
+    while running:
         try:
             if str(subreddits[0]) != 'all':
                     subs = r.get_subreddit(combined_subs)
                     comments = subs.get_comments(limit=None)
             for comment in comments:
-                cachelist.append(comment.id)
-                if check_if_all(comment,cachelist):
+                comment_body = comment.body.encode('utf-8')
+                if check_if_all(comment_body,comment.id,cachelist):
                         print 'Found a comment!'
-                        print comment.body
-                                    
+                                print comment_body
+                                print '-' * 25
+                                print '\n'
                         queue.append(comment.permalink)
-    
+                cachelist.append(comment.id)
         except Exception as e:
                 print 'ERROR:', e
+                print 'Stopping Gracefully.'
                 running = False
+        print len(queue)
 
         if not cachelist == []:
             write_to_cachefile(cachelist)
@@ -66,11 +68,11 @@ def write_to_cachefile(cachedlist):
     for postid in cachedlist:
         cachefile.write("\n")
         cachefile.write(postid)
-    
+
 def reply_to_queue():
-    
+
     try:
-        comment = r.get_submission(url=queue[0]).comments[0] 
+        comment = r.get_submission(url=queue[0]).comments[0]
         comment.reply(str_suffix)
         print 'Successfully replied to a comment!'
     except praw.errors.RateLimitExceeded as e:
@@ -81,7 +83,7 @@ def reply_to_queue():
         queue.pop(0)
     else:
         queue.pop(0)
-        
+
 def check_if_valid(text):
     for term in terms:
         if term in text.lower():
@@ -108,22 +110,19 @@ def exists(path):
     else:
         return z.status_code < 400
 
-def check_if_all(comment,cachinglist):
-    comment_body = comment.body.encode('utf-8')
-    if debugmode: print comment_body
+def check_if_all(comment_body,commentid, cachinglist):
     v = check_if_valid(comment_body)
-    if not v:
-        return False
+    if not v: return False
     l = check_if_link(comment_body)
-    j = not comment.id in cachinglist
+    j = not commentid in cachinglist
     t = False
     if l: t = exists(extract_link(comment_body))
     if (v and not l and j): return True
     return v and j and l and not t
 
 def checkmail():
-    mail = False  
-    for msg in r.get_unread(limit=None):
+    mail = False
+    for _ in r.get_unread(limit=None):
         mail = True
     if mail:
         print 'You have new mail!'
