@@ -7,9 +7,9 @@ str_suffix    = '''>%s
 **[Citation Needed]**
 
 *^I ^am ^a ^bot. ^For ^questions, ^please ^contact ^/u/slickytail*'''
-max_comments  = 10
+max_comments  = 500
 sleeptime     = 50
-subreddits    = ['askreddit','dataisbeautiful','gaming','news','pics','science','technology', 'botwatch']
+subreddits    = ['askreddit','gaming','news','technology', 'botwatch']
 terms         = ['studies show', 'study shows', 'research shows', 'data shows']
 username      = 'citation-is-needed'
 password      = raw_input('Enter the password for account ' + username + ' : ')
@@ -148,7 +148,7 @@ def exists(path):
         print str(e)
         return False
     else:
-        return z.status_code < 400
+        return not 400 < z.status_code < 500
 
 ## Does most of the logic for comment parsing
 def check_if_all(comment_body):
