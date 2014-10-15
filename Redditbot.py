@@ -1,15 +1,15 @@
-import praw, time, urlparse, requests
+import praw, time, urlparse, requests, string, re
 
 ## Config section
 
-str_suffix    = '''>%s
+str_suffix    = '''>%s.
 
 **[Citation Needed]**
 
 *^I ^am ^a ^bot. ^For ^questions, ^please ^contact ^/u/slickytail*'''
-max_comments  = 500
+max_comments  = 650
 sleeptime     = 50
-subreddits    = ['askreddit','gaming','news','technology', 'botwatch']
+subreddits    = ['all']
 terms         = ['studies show', 'study shows', 'research shows', 'data shows']
 username      = 'citation-is-needed'
 password      = raw_input('Enter the password for account ' + username + ' : ')
@@ -17,6 +17,8 @@ agent         = 'Silly Citing Bot - Maintained by /u/slickytail'
 cachefile     = open('cachedposts.txt','a+')
 queue         = []
 r             = praw.Reddit(agent)
+mode          = 'ping'  ## Mode is ping or stream
+blacklist     = ['askreddit','nfl','pics','cigars']
 
 def main():
     print 'Cite your posts! by /u/slickytail'
@@ -30,34 +32,38 @@ def main():
     ## Code from /u/NetflixBot - Establish a subreddit object
 
     cachelist = cachefile.read().splitlines()
-    if str(subreddits[0]) != 'all':
-        combined_subs = ('%s') % '+'.join(subreddits)
-        print('Looking at the following subreddits: "' + combined_subs + '".')
+    del cachelist[:-1000]
+    combined_subs = ('%s') % '+'.join(subreddits)
+    if mode == 'ping':
+        print 'Looking at the following subreddits: "' + combined_subs + '".'
     else:
         comments = praw.helpers.comment_stream(r, 'all', limit=None)
-        print('Looking at r/all.')
+        print 'Looking at a stream of the following subreddits: "' + combined_subs + '".' 
 
     running = True
     while running:
         try:
             
             ## Also from /u/NetflixBot - Update subreddit object
-            if str(subreddits[0]) != 'all':
+            if mode == 'ping':
                     subs = r.get_subreddit(combined_subs)
                     comments = subs.get_comments(limit=None)
             for comment in comments:
                 comment_body = comment.body.encode('utf-8')
                 ## Determine if a comment should be replied to
-                if not comment.id in cachelist:
-                    if check_if_all(comment_body) and str(comment.author).lower() != username.lower():
-                        
-                        ## Print a comment if one is found and add it to the queue
-                        print 'Found a comment!'
-                        print comment_body
-                        print '-' * 25
-                        print '\n'
-                        queue.append(comment.permalink)
-                cachelist.append(comment.id)
+                if comment.subreddit.display_name not in blacklist:
+                    if str(comment.author).lower() != username.lower() and str(r.get_info(thing_id=comment.parent_id).author).lower() != username.lower():
+                        if comment.id not in cachelist:
+                            if check_if_all(comment_body):
+                            
+                                ## Print a comment if one is found and add it to the queue
+                                print 'Found a comment!'
+                                print '-' * 25
+                                print comment_body
+                                print '-' * 25
+                                print '\n'
+                                queue.append(comment.permalink)
+                            cachelist.append(comment.id)
                 
         ## Allows the program to reply to comments and write to the cachefile when it stops
         except Exception as e:
@@ -102,14 +108,16 @@ def reply_to_queue():
         comment = r.get_submission(url=queue[0]).comments[0]
 
         ## Find the sentence that contains the phrase
-        for sentence in comment.body.encode('utf-8').split('.'):
+        for sentence in re.split('[?.!:"]', comment.body.encode('utf-8')):
             if check_if_valid(sentence):
                 st = sentence
             
         replyto = str_suffix % (st)
         comment.reply(replyto)
         print 'Successfully replied to a comment!'
-        print comment.body.encode('utf-8')[:30] + '...'
+        print st[:50] + '...'
+        print '-' * 25
+        print '\n'
     except praw.errors.RateLimitExceeded as e:
         print 'Error: Rate limit exceeded.'
         print e
@@ -150,6 +158,7 @@ def exists(path):
     else:
         return not 400 < z.status_code < 500
 
+
 ## Does most of the logic for comment parsing
 def check_if_all(comment_body):
     v = check_if_valid(comment_body)
@@ -160,7 +169,7 @@ def check_if_all(comment_body):
     if (v and not l): return True
     return v and l and not t
 
-## Self explanitory - checks mail
+## Self explanatory - checks mail
 def checkmail():
     mail = False
     for _ in r.get_unread(limit=None):
@@ -171,3 +180,4 @@ def checkmail():
 
 if __name__ == '__main__':
     main()
+    
