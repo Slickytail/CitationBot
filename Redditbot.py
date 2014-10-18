@@ -6,8 +6,8 @@ str_suffix    = '''>%s.
 
 **[Citation Needed]**
 
-*^I ^am ^a ^bot. ^For ^questions, ^please ^contact ^/u/slickytail*'''
-max_comments  = 650
+*^I ^am ^a ^bot. ^For ^questions ^or ^comments, ^please ^contact ^/u/slickytail*'''
+max_comments  = 1000
 sleeptime     = 50
 subreddits    = ['all']
 terms         = ['studies show', 'study shows', 'research shows', 'data shows']
@@ -51,8 +51,8 @@ def main():
             for comment in comments:
                 comment_body = comment.body.encode('utf-8')
                 ## Determine if a comment should be replied to
-                if comment.subreddit.display_name not in blacklist:
-                    if str(comment.author).lower() != username.lower() and str(r.get_info(thing_id=comment.parent_id).author).lower() != username.lower():
+                if comment.subreddit.display_name.lower() not in blacklist:
+                    if str(comment.author).lower() != username.lower():
                         if comment.id not in cachelist:
                             if check_if_all(comment_body):
                             
