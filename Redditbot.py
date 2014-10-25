@@ -1,4 +1,4 @@
-import praw, time, urlparse, requests, string, re
+import praw, time, urlparse, requests, string, re, ConfigParser
 
 ## Config section
 
@@ -7,18 +7,34 @@ str_suffix    = '''>%s.
 **[Citation Needed]**
 
 *^I ^am ^a ^bot. ^For ^questions ^or ^comments, ^please ^contact ^/u/slickytail*'''
+
+filetemplate  = '''[Configuration]
+Username = username
+Password = password'''
+try:
+    open('config.cfg','r+').close()
+except:
+    filething = open('config.cfg','w+')
+    filething.write(filetemplate)
+    filething.close()
+config = ConfigParser.ConfigParser()
+config.read('config.cfg')
+username  = config.get('Configuration', 'Username')
+password  = config.get('Configuration', 'Password')
+
 max_comments  = 750
 sleeptime     = 50
 subreddits    = ['all']
 terms         = ['studies show', 'study shows', 'research shows', 'data shows']
-username      = 'citation-is-needed'
-password      = raw_input('Enter the password for account ' + username + ' : ')
 agent         = 'Silly Citing Bot - Maintained by /u/slickytail'
+mode          = 'ping'  ## Mode is ping or stream
+blacklist     = ['askreddit','pics']
+
 cachefile     = open('cachedposts.txt','a+')
 queue         = []
 r             = praw.Reddit(agent)
-mode          = 'ping'  ## Mode is ping or stream
-blacklist     = ['askreddit','pics']
+
+
 
 def main():
     print 'Cite your posts! by /u/slickytail'
@@ -54,7 +70,7 @@ def main():
                             if check_if_all(comment_body):
                             
                                 ## Print a comment if one is found and add it to the queue
-                                print 'Found a comment!'
+                                print 'Found a comment in /r/%s' % (comment.subreddit.display_name.lower())
                                 print '-' * 25
                                 print comment_body
                                 print '-' * 25
@@ -124,14 +140,10 @@ def reply_to_queue():
 
 ## Function that checks if a comment contains a keyword
 def check_if_valid(text):
-    ## Implement checking for > or " "
-    text = text.lower()
-    
-    for line in text.splitlines():
-        if line == '':
-            pass
-        elif line[0] == '>' or line[0] == '"':
-            return False
+    text = text.lower( )
+    for line in text.splitlines( ):
+        if line == '': return False
+        elif line[0] == '>' or line[0] == '"': return False
         else:
             for term in terms:
                 if term in line:
