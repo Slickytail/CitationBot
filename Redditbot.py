@@ -7,7 +7,7 @@ str_suffix    = '''>%s.
 **[Citation Needed]**
 
 *^I ^am ^a ^bot. ^For ^questions ^or ^comments, ^please ^contact ^/u/slickytail*'''
-max_comments  = 1000
+max_comments  = 750
 sleeptime     = 50
 subreddits    = ['all']
 terms         = ['studies show', 'study shows', 'research shows', 'data shows']
@@ -18,18 +18,16 @@ cachefile     = open('cachedposts.txt','a+')
 queue         = []
 r             = praw.Reddit(agent)
 mode          = 'ping'  ## Mode is ping or stream
-blacklist     = ['askreddit','nfl','pics','cigars']
+blacklist     = ['askreddit','pics']
 
 def main():
     print 'Cite your posts! by /u/slickytail'
     print 'Logging in to Reddit...'
     r.login(username, password)
-    print 'Succesfully logged into reddit!'
-    print '\n'
+    print 'Succesfully logged into reddit! \n'
 
     checkmail()
 
-    ## Code from /u/NetflixBot - Establish a subreddit object
 
     cachelist = cachefile.read().splitlines()
     del cachelist[:-1000]
@@ -43,8 +41,7 @@ def main():
     running = True
     while running:
         try:
-            
-            ## Also from /u/NetflixBot - Update subreddit object
+
             if mode == 'ping':
                     subs = r.get_subreddit(combined_subs)
                     comments = subs.get_comments(limit=None)
@@ -89,8 +86,6 @@ def main():
             time.sleep(30)
 
     ## Close the cachefile and exit the program
-    cachefile.close()
-    print 'Exiting...'
 
 
 ## Function that erases the cachefile (safe because cachedlist is a copy of the cachefile) and rewrite it
@@ -129,9 +124,18 @@ def reply_to_queue():
 
 ## Function that checks if a comment contains a keyword
 def check_if_valid(text):
-    for term in terms:
-        if term in text.lower():
-            return True
+    ## Implement checking for > or " "
+    text = text.lower()
+    
+    for line in text.splitlines():
+        if line == '':
+            pass
+        elif line[0] == '>' or line[0] == '"':
+            return False
+        else:
+            for term in terms:
+                if term in line:
+                    return True
     return False
 
 ## Function that uses urlparse to detect a proper link
@@ -151,12 +155,14 @@ def extract_link(body):
 ## Function that visits a web url to determine if it exists
 def exists(path):
     try:
-        z = requests.head(path)
+        z = requests.head(path).status_code
     except Exception as e:
         print str(e)
         return False
+    if z == 405:
+        return True
     else:
-        return not 400 < z.status_code < 500
+        return not 400 < z < 500
 
 
 ## Does most of the logic for comment parsing
@@ -172,12 +178,17 @@ def check_if_all(comment_body):
 ## Self explanatory - checks mail
 def checkmail():
     mail = False
-    for _ in r.get_unread(limit=None):
+    for _ in r.get_unread(limit=1):
         mail = True
     if mail:
         print 'You have new mail!'
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        time.sleep(10)
     
+
+cachefile.close()
+print 'Exiting...'
