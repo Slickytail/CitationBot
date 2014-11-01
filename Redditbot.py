@@ -25,10 +25,10 @@ password  = config.get('Configuration', 'Password')
 max_comments  = 750
 sleeptime     = 50
 subreddits    = ['all']
-terms         = ['studies show', 'study shows', 'research shows', 'data shows']
+terms         = ['studies show', 'study show', 'research show', 'data show']
 agent         = 'Silly Citing Bot - Maintained by /u/slickytail'
 mode          = 'ping'  ## Mode is ping or stream
-blacklist     = ['askreddit','pics']
+blacklist     = ['askreddit','pics','changemyview','filoviralscience']
 
 cachefile     = open('cachedposts.txt','a+')
 queue         = []
@@ -42,8 +42,8 @@ def main():
     r.login(username, password)
     print 'Succesfully logged into reddit! \n'
 
+    
     checkmail()
-
 
     cachelist = cachefile.read().splitlines()
     del cachelist[:-1000]
@@ -57,7 +57,7 @@ def main():
     running = True
     while running:
         try:
-
+            
             if mode == 'ping':
                     subs = r.get_subreddit(combined_subs)
                     comments = subs.get_comments(limit=None)
@@ -142,8 +142,8 @@ def reply_to_queue():
 def check_if_valid(text):
     text = text.lower( )
     for line in text.splitlines( ):
-        if line == '': return False
-        elif line[0] == '>' or line[0] == '"': return False
+        if line == '': pass
+        elif line[0] == '>' or line[0] == '"' or line[0:4] == '&gt;': pass
         else:
             for term in terms:
                 if term in line:
@@ -174,6 +174,7 @@ def exists(path):
     if z == 405:
         return True
     else:
+        print z
         return not 400 < z < 500
 
 
@@ -189,11 +190,12 @@ def check_if_all(comment_body):
 
 ## Self explanatory - checks mail
 def checkmail():
-    mail = False
-    for _ in r.get_unread(limit=1):
-        mail = True
-    if mail:
-        print 'You have new mail!'
+    
+    mails = 0
+    for i in r.get_unread(limit=10):
+        mails += 1
+    if mails > 9 : print 'You have ten or more new messages. Either you don fuked up boi, or you made a funny.'
+    elif mails > 0: print 'You have %s new messages.' % mails
 
 
 if __name__ == '__main__':
