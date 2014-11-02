@@ -4,9 +4,13 @@ import praw, time, urlparse, requests, string, re, ConfigParser
 
 str_suffix    = '''>%s.
 
-**[Citation Needed]**
+**[[Citation Needed]](#b)**
 
 *^I ^am ^a ^bot. ^For ^questions ^or ^comments, ^please ^contact ^/u/slickytail*'''
+
+sourcerequest = '''If you're wondering how I work, you can check out my source code at
+(my GitHub page)[http://www.github.com/Slickytail/CitationBot]'''
+
 
 filetemplate  = '''[Configuration]
 Username = username
@@ -22,10 +26,12 @@ config.read('config.cfg')
 username  = config.get('Configuration', 'Username')
 password  = config.get('Configuration', 'Password')
 
+
 max_comments  = 750
 sleeptime     = 50
 subreddits    = ['all']
 terms         = ['studies show', 'study show', 'research show', 'data show']
+sourceterms   = ['how does this bot work', 'how this bot works',]
 agent         = 'Silly Citing Bot - Maintained by /u/slickytail'
 mode          = 'ping'  ## Mode is ping or stream
 blacklist     = ['askreddit','pics','changemyview','filoviralscience']
@@ -33,7 +39,6 @@ blacklist     = ['askreddit','pics','changemyview','filoviralscience']
 cachefile     = open('cachedposts.txt','a+')
 queue         = []
 r             = praw.Reddit(agent)
-
 
 
 def main():
@@ -104,7 +109,7 @@ def main():
     ## Close the cachefile and exit the program
 
 
-## Function that erases the cachefile (safe because cachedlist is a copy of the cachefile) and rewrite it
+## Function that erases the cachefile (safe because cachedlist is a copy of the cachefile) and rewrites it
 def write_to_cachefile(cachedlist):
     cachefile.seek(0,0)
     cachefile.truncate()
